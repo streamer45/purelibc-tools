@@ -28,6 +28,8 @@ int main (int argc, char *argv[]) {
   puretrace_opts opts;
   puretrace_opts *shared_opts;
   char *argv_backup[argc+1];
+  char *env;
+  char *cwd;
 
   /* Init tracer options */
 
@@ -87,8 +89,18 @@ int main (int argc, char *argv[]) {
 
   memcpy(shared_opts,&opts,sizeof(puretrace_opts));
 
-  if (setenv("LD_PRELOAD","/home/streamer45/c/vsd/libpurelibc.so:/home/streamer45/c/vsd/libpuretrace.so",1) < 0) {
-    fprintf(stderr,"setenv failed: %s\n",strerror(errno));
+  cwd = get_current_dir_name();
+
+  if (!cwd) {
+    return 1;
+  }
+
+  asprintf(&env,"%s/libpurelibc.so:%s/libpuretrace.so",cwd,cwd);
+
+  if (setenv("LD_PRELOAD",env,1) < 0) {
+    fprintf(stderr,"setenv failed: %s\n",strerror(errno));;
+    free(cwd);
+    free(env);
     return 1;
   }
 
@@ -107,6 +119,8 @@ int main (int argc, char *argv[]) {
   shm_unlink("/puretrace_opts");
 
   /* Cleaning Up */
+  free(cwd);
+  free(env);
   unsetenv("LD_PRELOAD");
 
   return 0;

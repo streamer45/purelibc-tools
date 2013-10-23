@@ -21,14 +21,20 @@ int main (int argc, char *argv[]) {
   int status;
   char *cwd;
   char *args[2] = {"bash",NULL};
-
-  /* Fork and Exec */
-
-  setenv("LD_PRELOAD","/home/streamer45/c/vsd/libpurelibc.so:/home/streamer45/c/vsd/libjail.so",1);
+  char *env;
 
   cwd = get_current_dir_name();
 
   if (!cwd) {
+    return 1;
+  }
+
+  asprintf(&env,"%s/libpurelibc.so:%s/libjail.so",cwd,cwd);
+
+  if (setenv("LD_PRELOAD",env,1) < 0) {
+    fprintf(stderr,"%s",strerror(errno));
+    free(cwd);
+    free(env);
     return 1;
   }
 
@@ -47,6 +53,7 @@ int main (int argc, char *argv[]) {
 
   /* Cleaning Up */
   free(cwd);
+  free(env);
   unsetenv("LD_PRELOAD");
 
   return 0;

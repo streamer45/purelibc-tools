@@ -23,6 +23,8 @@ static void print_usage() {
 int main (int argc, char *argv[]) {
   int cid;
   int status;
+  char *env;
+  char *cwd;
   char *args[2] = {"bash",NULL};
   char *sourcepath;
   char *destpath;
@@ -44,7 +46,20 @@ int main (int argc, char *argv[]) {
 
   printf("Source: %s, Dest: %s\n",sourcepath,destpath);
 
-  setenv("LD_PRELOAD","/home/streamer45/c/vsd/libpurelibc.so:/home/streamer45/c/vsd/libdirewrite.so",1);
+  cwd = get_current_dir_name();
+
+  if (!cwd) {
+    return 1;
+  }
+
+  asprintf(&env,"%s/libpurelibc.so:%s/libdirewrite.so",cwd,cwd);
+
+  if (setenv("LD_PRELOAD",env,1) < 0) {
+    fprintf(stderr,"setenv failed: %s\n",strerror(errno));;
+    free(cwd);
+    free(env);
+    return 1;
+  }
 
   setenv("LDRW_SOURCE",sourcepath,1);
   setenv("LDRW_DEST",destpath,1);
@@ -63,6 +78,8 @@ int main (int argc, char *argv[]) {
   /* Cleaning Up */
   free(sourcepath);
   free(destpath);
+  free(cwd);
+  free(env);
   unsetenv("LD_PRELOAD");
 
   return 0;

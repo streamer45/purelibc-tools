@@ -1,1 +1,1 @@
-A simple library than enables (one preloaded using LD_PRELOAD) the common program "cat" to receive an http address as input.
+A simple library than enables (once preloaded using LD_PRELOAD) the common program "cat" to receive an http address as input.
